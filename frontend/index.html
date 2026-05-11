@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git-monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="screen active">
+    <div class="logo-corner">
+      <span class="logo-text">Git-monitor</span>
+      <span class="logo-sub">Branch Status Monitor</span>
+    </div>
+    <div class="login-card">
+      <div class="gh-icon">GH</div>
+      <h2 class="card-title">Git-monitor</h2>
+      <p class="card-sub">Введи GitHub токен для доступа</p>
+
+      <label class="field-label">Personal Access Token</label>
+      <div class="input-wrap">
+        <input id="token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+        <button class="eye-btn" id="eye-btn" title="Показать/скрыть">👁</button>
+      </div>
+      <p class="field-hint">Нужны права: repo, read:user</p>
+
+      <button class="btn-primary" id="login-btn">Войти</button>
+      <p id="login-error" class="login-error hidden"></p>
+      <p class="card-footer">Токен хранится только в памяти сессии</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div id="dashboard-screen" class="screen">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-left">
+        <span class="logo-text">Git-monitor</span>
+        <span class="logo-sub">Branch Status Monitor</span>
+      </div>
+      <div class="nav-right">
+        <span id="nav-username" class="nav-username"></span>
+        <div class="nav-avatar" id="nav-avatar"></div>
+        <button class="logout-btn" id="logout-btn">Выйти</button>
+      </div>
+    </nav>
+
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <p class="sidebar-section-label">НАВИГАЦИЯ</p>
+        <nav class="sidebar-nav">
+          <a href="#" class="sidebar-link active">Репозитории</a>
+          <a href="#" class="sidebar-link">Активность</a>
+          <a href="#" class="sidebar-link">Настройки</a>
+        </nav>
+
+        <p class="sidebar-section-label" style="margin-top:32px">СТАТУСЫ</p>
+        <div class="legend">
+          <div class="legend-item"><span class="dot green"></span> Stable (main)</div>
+          <div class="legend-item"><span class="dot yellow"></span> In development</div>
+          <div class="legend-item"><span class="dot orange"></span> Active branches</div>
+        </div>
+
+        <div class="sidebar-stats" id="sidebar-stats"></div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main-content">
+        <div class="content-header">
+          <div>
+            <h1 class="page-title">Репозитории</h1>
+            <p class="page-sub">Мониторинг веток и статуса релизов</p>
+          </div>
+          <button class="refresh-btn" id="refresh-btn" title="Обновить">↻ Обновить</button>
+        </div>
+
+        <div class="search-bar">
+          <input id="search-input" type="text" placeholder="Поиск репозитория..." />
+          <select id="filter-select">
+            <option value="all">Все статусы</option>
+            <option value="Зеленый">Stable</option>
+            <option value="Желтый">Development</option>
+            <option value="Красный">Active Work</option>
+          </select>
+        </div>
+
+        <div id="repos-list" class="repos-list">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Загрузка репозиториев...</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
