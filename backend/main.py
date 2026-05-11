@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from github import Github
 from typing import Optional
@@ -58,7 +58,7 @@ def determine_status(repo, branch_names):
 
 
 @app.get("/api/projects")
-def get_projects(x_github_token: Optional[str] = None):
+def get_projects(x_github_token: Optional[str] = Header(None)):
     token = x_github_token
     #  or os.getenv("GITHUB_TOKEN")
     if not token:
