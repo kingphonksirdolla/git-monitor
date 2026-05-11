@@ -43,12 +43,12 @@ async function handleLogin() {
   // Temporarily save token and try to load repos
   token = val;
   try {
-    const repos = await fetchRepos();
-    if (repos && !repos.error) {
-      allRepos = repos;
-      switchToDashboard(repos);
+    const data = await fetchRepos();
+    if (data && !data.error) {
+      allRepos = data.projects;
+      switchToDashboard(data);
     } else {
-      showError(repos?.error || 'Ошибка авторизации. Проверь токен.');
+      showError(data?.error || 'Ошибка авторизации. Проверь токен.');
       token = null;
     }
   } catch (err) {
@@ -77,24 +77,18 @@ async function fetchRepos() {
 }
 
 // ── Switch to dashboard ───────────────────────────────
-function switchToDashboard(repos) {
+function switchToDashboard(data) {
   loginScreen.classList.remove('active');
   dashScreen.classList.add('active');
-  renderDashboard(repos);
+  renderDashboard(data);
 }
 
-function renderDashboard(repos) {
-  // Extract username from first repo or token
-  const username = repos.length > 0
-    ? (repos[0]._owner || repos[0].owner || 'user')
-    : 'user';
+function renderDashboard(data) {
+  navUsername.textContent = data.username;
+  navAvatar.innerHTML = `<img class="nav-avatar" src="${data.avatar}" alt="Avatar">`;
 
-  const initials = username.slice(0, 2).toUpperCase();
-  navAvatar.textContent = initials;
-  navUsername.textContent = username;
-
-  renderRepos(repos);
-  renderSidebarStats(repos);
+  renderRepos(data.projects);
+  renderSidebarStats(data.projects);
 }
 
 // ── Render repos ──────────────────────────────────────
@@ -220,11 +214,11 @@ filterSelect.addEventListener('change', () => renderRepos(getFiltered()));
 refreshBtn.addEventListener('click', async () => {
   reposList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Обновление...</p></div>`;
   try {
-    const repos = await fetchRepos();
-    if (repos && !repos.error) {
-      allRepos = repos;
+    const data = await fetchRepos();
+    if (data && !data.error) {
+      allRepos = data.projects;
       renderRepos(getFiltered());
-      renderSidebarStats(repos);
+      renderSidebarStats(data.projects);
     }
   } catch (e) {
     reposList.innerHTML = `<div class="empty-state"><p style="color:var(--red)">Ошибка обновления</p></div>`;
