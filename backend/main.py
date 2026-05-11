@@ -90,4 +90,8 @@ def get_projects(x_github_token: Optional[str] = Header(None)):
             }
         )
 
-    return projects
+    return {
+        "projects": projects,
+        "username": user.login,
+        "avatar" : user.avatar_url,
+    }
