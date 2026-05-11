@@ -3,7 +3,6 @@ const API_BASE = 'http://localhost:8000';
 let allRepos = [];
 let token = null;
 
-// ── DOM refs ──────────────────────────────────────────
 const loginScreen    = document.getElementById('login-screen');
 const dashScreen     = document.getElementById('dashboard-screen');
 const tokenInput     = document.getElementById('token-input');
@@ -19,14 +18,12 @@ const filterSelect   = document.getElementById('filter-select');
 const refreshBtn     = document.getElementById('refresh-btn');
 const sidebarStats   = document.getElementById('sidebar-stats');
 
-// ── Toggle password visibility ────────────────────────
 eyeBtn.addEventListener('click', () => {
   const isPass = tokenInput.type === 'password';
   tokenInput.type = isPass ? 'text' : 'password';
   eyeBtn.textContent = isPass ? '🙈' : '👁';
 });
 
-// ── Login ─────────────────────────────────────────────
 loginBtn.addEventListener('click', handleLogin);
 tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
@@ -40,7 +37,6 @@ async function handleLogin() {
   loginBtn.textContent = 'Подключение...';
   hideError();
 
-  // Temporarily save token and try to load repos
   token = val;
   try {
     const data = await fetchRepos();
@@ -68,7 +64,6 @@ function hideError() {
   loginError.classList.add('hidden');
 }
 
-// ── Fetch repos ───────────────────────────────────────
 async function fetchRepos() {
   const headers = token ? { 'X-GitHub-Token': token } : {};
   const res = await fetch(`${API_BASE}/api/projects`, { headers });
@@ -76,7 +71,6 @@ async function fetchRepos() {
   return res.json();
 }
 
-// ── Switch to dashboard ───────────────────────────────
 function switchToDashboard(data) {
   loginScreen.classList.remove('active');
   dashScreen.classList.add('active');
@@ -91,7 +85,6 @@ function renderDashboard(data) {
   renderSidebarStats(data.projects);
 }
 
-// ── Render repos ──────────────────────────────────────
 function renderRepos(repos) {
   if (!repos.length) {
     reposList.innerHTML = `
@@ -124,11 +117,9 @@ function buildCard(repo) {
   const info = statusInfo(repo.status);
   card.className = `repo-card status-${info.cls}`;
 
-  // Build branch pills
   const branches = repo.branches || {};
   const pillsHtml = buildPills(branches);
 
-  // Build description (use repo language or empty)
   const desc = repo.description || repo.language || '';
 
   card.innerHTML = `
@@ -156,7 +147,6 @@ function buildPills(branches) {
   const features = branches.features || [];
   const bugfixes = branches.bugfixes || [];
 
-  // main / develop from "other"
   const main = other.find(b => b === 'main' || b === 'master');
   const develop = other.find(b => b === 'develop');
   const rest = other.filter(b => b !== main && b !== develop);
@@ -178,7 +168,6 @@ function countBranches(branches) {
   return Object.values(branches).reduce((s, arr) => s + arr.length, 0);
 }
 
-// ── Sidebar stats ─────────────────────────────────────
 function renderSidebarStats(repos) {
   const counts = {
     total:   repos.length,
@@ -196,7 +185,6 @@ function renderSidebarStats(repos) {
   `;
 }
 
-// ── Search & filter ───────────────────────────────────
 function getFiltered() {
   const q      = searchInput.value.toLowerCase().trim();
   const status = filterSelect.value;
@@ -210,7 +198,6 @@ function getFiltered() {
 searchInput.addEventListener('input', () => renderRepos(getFiltered()));
 filterSelect.addEventListener('change', () => renderRepos(getFiltered()));
 
-// ── Refresh ───────────────────────────────────────────
 refreshBtn.addEventListener('click', async () => {
   reposList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Обновление...</p></div>`;
   try {
@@ -225,7 +212,6 @@ refreshBtn.addEventListener('click', async () => {
   }
 });
 
-// ── Logout ────────────────────────────────────────────
 logoutBtn.addEventListener('click', () => {
   token = null;
   allRepos = [];
@@ -238,7 +224,6 @@ logoutBtn.addEventListener('click', () => {
   sidebarStats.innerHTML = '';
 });
 
-// ── Utils ─────────────────────────────────────────────
 function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
