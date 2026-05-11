@@ -1,4 +1,3 @@
-/* ── Reset & Root ───────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -34,11 +33,9 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Screens ────────────────────────────────────────── */
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: block; }
 
-/* ── LOGIN ──────────────────────────────────────────── */
 #login-screen {
   display: none;
   align-items: center;
@@ -158,7 +155,6 @@ html, body {
   margin-top: 14px; text-align: center;
 }
 
-/* ── DASHBOARD ──────────────────────────────────────── */
 #dashboard-screen { padding-top: 3px; }
 
 .navbar {
@@ -193,13 +189,11 @@ html, body {
 }
 .logout-btn:hover { color: var(--white); background: var(--border); }
 
-/* ── Layout ─────────────────────────────────────────── */
 .layout {
   display: flex;
   min-height: calc(100vh - 59px);
 }
 
-/* ── Sidebar ────────────────────────────────────────── */
 .sidebar {
   width: 220px;
   min-height: 100%;
@@ -260,7 +254,6 @@ html, body {
 .stat-name { font-size: 12px; color: var(--gray); }
 .stat-val  { font-size: 12px; font-weight: 600; font-family: var(--font-mono); }
 
-/* ── Main ───────────────────────────────────────────── */
 .main-content { flex: 1; padding: 24px 32px; overflow-x: hidden; }
 
 .content-header {
@@ -303,7 +296,6 @@ html, body {
 }
 #filter-select:focus { border-color: var(--accent); }
 
-/* ── Repo cards ─────────────────────────────────────── */
 .repos-list { display: flex; flex-direction: column; gap: 12px; }
 
 .repo-card {
@@ -325,7 +317,6 @@ html, body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* status left bar */
 .repo-card::before {
   content: '';
   position: absolute; left: 0; top: 0; bottom: 0;
@@ -385,7 +376,6 @@ html, body {
   border-top: 1px solid var(--border);
 }
 
-/* ── Loading / empty ────────────────────────────────── */
 .loading-state {
   display: flex; flex-direction: column; align-items: center;
   padding: 60px 0; gap: 16px;
@@ -407,5 +397,4 @@ html, body {
 }
 .empty-state .big { font-size: 40px; margin-bottom: 8px; }
 
-/* ── Sidebar position fix ───────────────────────────── */
 .sidebar { position: relative; }
