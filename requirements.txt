@@ -2,3 +2,6 @@ fastapi
 uvicorn
 PyGithub
 python-dotenv
+sqlalchemy
+psycopg2-binary
+alembic

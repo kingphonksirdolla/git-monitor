@@ -1,12 +1,18 @@
 import os
-from collections import defaultdict
+
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from github import Github
-from typing import Optional
+from sqlalchemy.orm import Session
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+from backend.db import SessionLocal
+from backend.models import TrackedRepos, User
+from backend.services.auth import get_or_create_user
+from backend.services.tracked_repos import get_tracked, add_tracked, remove_tracked
+from backend.services.git_service import get_repo_status
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -18,80 +24,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-def branch_changes_applied(repo, target_branch, source_branch):
-    comparison = repo.compare(target_branch, source_branch)
-    return comparison.ahead_by == 0
+def get_github_user(token: str = Header(...)):
+    try:
+        g = Github(token)
+        return g.get_user()
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid GitHub token")
 
+def get_current_user(
+    github_user=Depends(get_github_user),
+    db: Session = Depends(get_db)
+) -> User:
+    return get_or_create_user(github_user, db)
 
-def determine_status(repo, branch_names):
-    main_branch = repo.default_branch
-    has_develop = "develop" in branch_names
-    develop_ahead_of_main = has_develop and not branch_changes_applied(
-        repo, main_branch, "develop"
-    )
-    work_branches = [
-        name for name in branch_names if name.startswith(("feature/", "bugfix/"))
+@app.get("/user")
+def read_user(user: User = Depends(get_current_user)):
+    return {"id": user.id, "login": user.github_login, "avatar_url": user.avatar_url}
+
+@app.get("/repos/available")
+def read_repos(github_user=Depends(get_github_user)):
+    return [{"id": r.id, "name": r.name, "full_name": r.full_name} for r in github_user.get_repos()]
+
+@app.get("/repos/tracked")
+def read_tracked(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return get_tracked(user.id, db)
+
+@app.put("/repos/tracked/{repo_id}")
+def track_repo(repo_id: int, repo_name: str, repo_full_name: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return add_tracked(user.id, repo_id, repo_name, repo_full_name, db)
+
+@app.delete("/repos/tracked/{repo_id}")
+def untrack_repo(repo_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    ok = remove_tracked(user.id, repo_id, db)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Tracked repository not found")
+    return {"detail": "Repository untracked successfully"}
+
+@app.get("/repos/status")
+def read_status(token: str = Header(...), user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    repos = get_tracked(user.id, db)
+    return [
+        {"repo": r.repo_full_name, **get_repo_status(token, r.repo_full_name)}
+        for r in repos
     ]
-
-    if not work_branches:
-        if develop_ahead_of_main:
-            return "Желтый"
-        return "Зеленый"
-
-    has_changes_only_in_develop = False
-
-    for branch_name in work_branches:
-        if branch_changes_applied(repo, main_branch, branch_name):
-            continue
-
-        if has_develop and branch_changes_applied(repo, "develop", branch_name):
-            has_changes_only_in_develop = True
-            continue
-
-        return "Красный"
-
-    if has_changes_only_in_develop or develop_ahead_of_main:
-        return "Желтый"
-
-    return "Зеленый"
-
-
-@app.get("/api/projects")
-def get_projects(x_github_token: Optional[str] = Header(None)):
-    token = x_github_token
-    #  or os.getenv("GITHUB_TOKEN")
-    if not token:
-        raise HTTPException(status_code=401, detail="токен не найден")
-
-    github = Github(token)
-    user = github.get_user()
-    repos = user.get_repos(sort="updated", direction="desc")
-
-    projects = []
-    for repo in repos:
-        branches = list(repo.get_branches())
-        branch_names = [branch.name for branch in branches]
-
-        categorized_branches = defaultdict(list)
-        for name in branch_names:
-            if name.startswith("feature/"):
-                categorized_branches["features"].append(name)
-            elif name.startswith("bugfix/"):
-                categorized_branches["bugfixes"].append(name)
-            else:
-                categorized_branches["other"].append(name)
-
-        projects.append(
-            {
-                "name": repo.name,
-                "status": determine_status(repo, branch_names),
-                "branches": dict(categorized_branches),
-            }
-        )
-
-    return {
-        "projects": projects,
-        "username": user.login,
-        "avatar" : user.avatar_url,
-    }
