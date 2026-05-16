@@ -44,7 +44,7 @@ DATABASE_URL=sqlite:///./git_monitor.db
 Для PostgreSQL:
 
 ```
-DATABASE_URL=postgresql://user:password@localhost:5432/git_monitor
+DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/git_monitor
 ```
 
 ### 4. Применение миграций
